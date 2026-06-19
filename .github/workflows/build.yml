@@ -1,0 +1,41 @@
+name: Build Windows EXE
+
+# Trigger:
+# - on push to main/master branch
+# - manual run (via the "Run workflow" button in the Actions tab)
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "memory_monitor.py"
+      - ".github/workflows/build.yml"
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install psutil matplotlib pyinstaller
+
+      - name: Build EXE with PyInstaller
+        run: |
+          pyinstaller --onefile --windowed --name "MemoryMonitor" memory_monitor.py
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MemoryMonitor-windows-exe
+          path: dist/MemoryMonitor.exe
+          if-no-files-found: error
